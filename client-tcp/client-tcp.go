@@ -1,19 +1,18 @@
-package tcp
+package main
 
 import (
+	"io"
 	"net"
+	"os"
 
 	"github.com/PedroCosta8/sistemas-distribuidos/utils"
 )
 
-func TcpSendFile(file []byte) error {
-	connection, err := net.Dial("tcp", ":8888")
+func main() {
+	conn, err := net.Dial("tcp", ":8888")
 	utils.ErrorCheck(err)
-	defer connection.Close()
-
-	_, err = connection.Write(file)
-	if err != nil {
-		return err
-	}
-	return nil
+	newFile, err := os.Create("output.png")
+	utils.ErrorCheck(err)
+	_, err = io.Copy(newFile, conn)
+	utils.ErrorCheck(err)
 }
