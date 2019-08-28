@@ -1,38 +1,37 @@
-package main
+package tcp
 
 import (
-	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net"
 	"os"
-
-	"github.com/PedroCosta8/sistemas-distribuidos/utils"
 )
 
-type Protocol struct {
+type Response struct {
 	WithError bool
 	Data      []byte
 }
 
-func main() {
+func SearchImage(imageName string) (*os.File, error) {
 	conn, err := net.Dial("tcp", ":8888")
-	utils.ErrorCheck(err)
-
-	_, err = conn.Write([]byte("input2\n"))
-	utils.ErrorCheck(err)
-
-	newFile, err := os.Create("output.png")
-	utils.ErrorCheck(err)
-
-	var protocol Protocol
-
-	decoder := json.NewDecoder(conn)
-	err = decoder.Decode(&protocol)
-	utils.ErrorCheck(err)
-
-	if protocol.WithError == true {
-		fmt.Println("Response with error")
+	if err != nil {
+		return nil, err
 	}
 
-	newFile.Write(protocol.Data)
+	_, err = conn.Write([]byte(fmt.Sprintf("%s\n", imageName)))
+	if err != nil {
+		return nil, err
+	}
+
+	image, err := ioutil.TempFile(os.TempDir(), "image.png")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = io.Copy(image, conn)
+	if err != nil {
+		return nil, err
+	}
+	return image, nil
 }
