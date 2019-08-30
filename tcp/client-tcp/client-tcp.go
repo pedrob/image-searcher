@@ -6,15 +6,13 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
-)
 
-type Response struct {
-	WithError bool
-	Data      []byte
-}
+	"github.com/PedroCosta8/sistemas-distribuidos/utils"
+)
 
 func SearchImage(imageName string) (*os.File, error) {
 	conn, err := net.Dial("tcp", ":8888")
+	defer conn.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -29,8 +27,13 @@ func SearchImage(imageName string) (*os.File, error) {
 		return nil, err
 	}
 
-	_, err = io.Copy(image, conn)
+	fileSize, err := io.Copy(image, conn)
 	if err != nil {
+		return nil, err
+	}
+
+	if fileSize == 0 {
+		err = utils.ImageNotFound()
 		return nil, err
 	}
 	return image, nil

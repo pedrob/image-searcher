@@ -30,8 +30,12 @@ func (app *App) LoadImage() {
 	image, err := tcp.SearchImage(text)
 	defer image.Close()
 	if err != nil {
+		app.notFound.Text = "Image not found"
+		app.image.File = ""
+		canvas.Refresh(app.notFound)
 		return
 	}
+	app.notFound.Text = ""
 	app.image.File = image.Name()
 	app.image.Resize(fyne.NewSize(800, 400))
 	canvas.Refresh(app.image)
@@ -44,7 +48,7 @@ func Show(app fyne.App) {
 	window.Resize(fyne.NewSize(800, 500))
 
 	textField := widget.NewEntry()
-	//textField.Focused() its no foocused
+	textField.FocusGained()
 	application.searchEntry = textField
 
 	searchButton := widget.NewButton("Search", func() {
@@ -57,6 +61,7 @@ func Show(app fyne.App) {
 		textField,
 		searchButton,
 		application.image,
+		application.notFound,
 	))
 	window.ShowAndRun()
 }

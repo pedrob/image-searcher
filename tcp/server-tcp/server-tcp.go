@@ -12,19 +12,26 @@ import (
 )
 
 func main() {
-	//servidor tcp, rodando na porta 8888
 	server, err := net.Listen("tcp", ":8888")
+	defer server.Close()
 	utils.ErrorCheck(err)
 	fmt.Println("Server running")
 
-	connection, err := server.Accept()
-	utils.ErrorCheck(err)
+	for {
+		connection, err := server.Accept()
+		utils.ErrorCheck(err)
+		go handleRequest(connection)
+	}
+}
 
+func handleRequest(connection net.Conn) {
+	defer connection.Close()
 	fileName, err := bufio.NewReader(connection).ReadString('\n')
 	utils.ErrorCheck(err)
 
 	f := strings.Split(fileName, "\n")
-	path := fmt.Sprintf("./assets/%s.jpg", f[0])
+	fLow := strings.ToLower(f[0])
+	path := fmt.Sprintf("./assets/%s.jpg", fLow)
 	file, err := os.Open(path)
 	utils.ErrorCheck(err)
 
